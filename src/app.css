@@ -1,0 +1,11 @@
+@font-face {
+  font-family: 'Modesty';
+  src: local('Modesty'),
+       url('./assets/fonts/Modesty.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+.custom-font {
+  font-family: 'Modesty', cursive;
+}
