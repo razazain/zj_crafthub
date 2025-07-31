@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import logo from '../assets/images/logo.jpeg';
-import { Menu, X } from 'lucide-react'; // Install lucide-react: npm install lucide-react
+import { Menu, X } from 'lucide-react';
 
 const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
 
   return (
@@ -24,17 +23,16 @@ const Header = () => {
               </div>
             </div>
 
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               {['HOME', 'SHOP', 'CONTACT US'].map((item, index) => (
                 <a
                   key={index}
                   href="#"
-                  className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-green-600"
+                  className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]"
                 >
                   {item}
-                  <span
-                    className="absolute left-0 -bottom-1 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"
-                  ></span>
+                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
                 </a>
               ))}
             </nav>
@@ -47,7 +45,8 @@ const Header = () => {
             </div>
           </div>
         </div>
-        
+
+        {/* Mobile Navigation */}
         {isDrawerOpen && (
           <div className="md:hidden bg-white shadow-lg border-t border-gray-100 absolute w-full left-0 top-full z-40">
             <nav className="flex flex-col items-start px-4 py-4 space-y-4">
@@ -55,10 +54,10 @@ const Header = () => {
                 <a
                   key={index}
                   href="#"
-                  className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-green-600"
+                  className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]"
                 >
                   {item}
-                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-green-600 transition-all duration-300 group-hover:w-full"></span>
+                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
                 </a>
               ))}
             </nav>
