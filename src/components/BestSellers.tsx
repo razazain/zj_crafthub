@@ -1,33 +1,42 @@
 import React from 'react';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
+import tomjerrykeychain from '../assets/images/products/tomjerrykeychain.webp';
+import beadedflowerkeychain from '../assets/images/products/beadskeychain.webp';
+import personalizedbracelates from '../assets/images/products/bluebracelate.webp';
+import couplebracelate from '../assets/images/products/couplebracelate.webp';
+import pen from '../assets/images/products/pen.webp';
+import pinkbracelate from '../assets/images/products/pinkbracelate.webp';
+
 
 const BestSellers = () => {
   const products = [
-    { name: 'Baba Board Mug', price: '£35.00', image: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.8 },
-    { name: 'Motorized Tricycle', price: '£35.00', image: 'https://images.pexels.com/photos/163077/mario-luigi-yoschi-figures-163077.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.9 },
-    { name: 'Walnut Cutting Board', price: '£100.00', image: 'https://images.pexels.com/photos/4226796/pexels-photo-4226796.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.7 },
-    { name: 'Pizza Plate Tray', price: '£35.00', image: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.6 },
-    { name: 'Minimalist Ceramic Vase', price: '£19.00', image: 'https://images.pexels.com/photos/1738986/pexels-photo-1738986.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.8 },
-    { name: 'Clear Silicon Teapot', price: '£19.00', image: 'https://images.pexels.com/photos/230477/pexels-photo-230477.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.5 },
-    { name: 'Lucky Wooden Elephant', price: '£35.00', image: 'https://images.pexels.com/photos/1670977/pexels-photo-1670977.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.9 },
-    { name: 'Decorative Christmas Fox', price: '£19.00', image: 'https://images.pexels.com/photos/1670977/pexels-photo-1670977.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.7 },
-    { name: 'Aluminum Eggpan', price: '£100.00', image: 'https://images.pexels.com/photos/4226796/pexels-photo-4226796.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.6 },
-    { name: 'Fish Cut Car Set', price: '£9.00', image: 'https://images.pexels.com/photos/163077/mario-luigi-yoschi-figures-163077.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.8 },
-    { name: 'Electric Egg Beater', price: '£100.00', image: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.4 },
-    { name: 'Open Cottage Playhouse', price: '£35.00', image: 'https://images.pexels.com/photos/1670977/pexels-photo-1670977.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.9 },
-    { name: 'Round Popcorn Bowl', price: '£19.00', image: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.7 },
-    { name: 'Abstract Folded Pots', originalPrice: '£50.00', price: '£35.00', image: 'https://images.pexels.com/photos/1738986/pexels-photo-1738986.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.8, onSale: true }
+    { name: 'Cute keychains featuring everyone`s fav cartoon duo', price: 'Contact Us', image: tomjerrykeychain, rating: 4.8 },
+    { name: 'Adorable beaded flower keychains', price: 'Contact Us', image: beadedflowerkeychain, rating: 4.9 },
+    { name: 'personalized letter beads bracelets', price: 'Contact Us', image: personalizedbracelates, rating: 4.7 },
+    { name: 'Perfect pair for a perfect bond', price: 'Contact Us', image: couplebracelate, rating: 4.6 },
+    { name: 'custom handmade pen', price: 'Contact Us', image: pen, rating: 4.8 },
+    { name: 'customize any name and any color in them', price: 'Contact Us', image: pinkbracelate, rating: 4.5 },
+    { name: 'Cute keychains featuring everyone`s fav cartoon duo', price: 'Contact Us', image: tomjerrykeychain, rating: 4.8 },
+    { name: 'Adorable beaded flower keychains', price: 'Contact Us', image: beadedflowerkeychain, rating: 4.9 },
+    // { name: 'Lucky Wooden Elephant', price: '£35.00', image: 'https://images.pexels.com/photos/1670977/pexels-photo-1670977.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.9 },
+    // { name: 'Decorative Christmas Fox', price: '£19.00', image: 'https://images.pexels.com/photos/1670977/pexels-photo-1670977.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.7 },
+    // { name: 'Aluminum Eggpan', price: '£100.00', image: 'https://images.pexels.com/photos/4226796/pexels-photo-4226796.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.6 },
+    // { name: 'Fish Cut Car Set', price: '£9.00', image: 'https://images.pexels.com/photos/163077/mario-luigi-yoschi-figures-163077.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.8 },
+    // { name: 'Electric Egg Beater', price: '£100.00', image: 'https://images.pexels.com/photos/4099354/pexels-photo-4099354.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.4 },
+    // { name: 'Open Cottage Playhouse', price: '£35.00', image: 'https://images.pexels.com/photos/1670977/pexels-photo-1670977.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.9 },
+    // { name: 'Round Popcorn Bowl', price: '£19.00', image: 'https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.7 },
+    // { name: 'Abstract Folded Pots', originalPrice: '£50.00', price: '£35.00', image: 'https://images.pexels.com/photos/1738986/pexels-photo-1738986.jpeg?auto=compress&cs=tinysrgb&w=300', rating: 4.8, onSale: true }
   ];
 
   return (
     <section className="py-16 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="text-center mb-12">
+        {/* <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Shop now — Shop our best-sellers</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Discover why these handcrafted pieces are loved by our community of artisan enthusiasts.
           </p>
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products.map((product, index) => (
@@ -38,11 +47,11 @@ const BestSellers = () => {
                   alt={product.name}
                   className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                {product.onSale && (
+                {/* {product.onSale && (
                   <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
                     SALE
                   </div>
-                )}
+                )} */}
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <button className="bg-white rounded-full p-2 shadow-md hover:bg-gray-50 transition-colors">
                     <Heart className="w-4 h-4 text-gray-600" />
@@ -72,9 +81,9 @@ const BestSellers = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  {product.originalPrice && (
+                  {/* {product.originalPrice && (
                     <span className="text-sm text-gray-500 line-through">{product.originalPrice}</span>
-                  )}
+                  )} */}
                   <span className="font-bold text-gray-900">{product.price}</span>
                 </div>
               </div>
@@ -83,7 +92,7 @@ const BestSellers = () => {
         </div>
 
         <div className="text-center mt-12">
-          <button className="bg-green-600 text-white px-8 py-3 rounded-full hover:bg-green-700 transition-colors font-medium">
+          <button className="bg-[#f6dfd7] text-black px-8 py-3 rounded-full transition-colors font-medium border-2 border-transparent hover:border-[#b58983]">
             View All Products
           </button>
         </div>
