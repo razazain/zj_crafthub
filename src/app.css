@@ -1,7 +1,22 @@
-@font-face {
+/* @font-face {
   font-family: 'Modesty';
   src: local('Modesty'),
        url('./assets/fonts/Modesty.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+.custom-font {
+  font-family: 'Modesty', cursive;
+} */
+
+@font-face {
+  font-family: 'Modesty';
+  src: local('Modesty'),
+       url('./assets/fonts/modestyfreshstyle-webfont.woff2') format('woff2'),
+       url('./assets/fonts/modestyfreshstyle-webfont.woff') format('woff'),
+       url('./assets/fonts/ModestyFreshStyle.ttf') format('truetype'),
+       url('./assets/fonts/ModestyFreshStyle.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
 }
