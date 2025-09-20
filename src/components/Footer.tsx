@@ -1,5 +1,6 @@
 import React from 'react';
 import { Mail, Phone, MapPin } from 'lucide-react';
+import { Link } from "react-router-dom";
 import logo from '../assets/images/logo-favicon.png';
 
 
@@ -27,10 +28,10 @@ const Footer = () => {
 
         {/* Navigation Links */}
         <nav className="flex flex-wrap justify-center gap-6 text-sm font-medium mb-8">
-          <a href="#" className="hover:text-black">ABOUT US</a>
-          <a href="#" className="hover:text-black">CONTACT</a>
-          <a href="#" className="hover:text-black">POLICY</a>
-          <a href="#" className="hover:text-black">FAQS</a>
+          <Link to="/aboutus" className="hover:text-black">ABOUT US</Link>
+          <Link to="/contact" className="hover:text-black">CONTACT</Link>
+          <Link to="/policy" className="hover:text-black">POLICY</Link>
+          <Link to="/faqs" className="hover:text-black">FAQS</Link>
         </nav>
 
         {/* Newsletter */}

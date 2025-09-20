@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import tomjerrykeychain from '../assets/images/products/tomjerrykeychain.webp';
 import beadedflowerkeychain from '../assets/images/products/beadskeychain.webp';
@@ -6,11 +6,9 @@ import personalizedbracelates from '../assets/images/products/bluebracelate.webp
 import couplebracelate from '../assets/images/products/couplebracelate.webp';
 import pen from '../assets/images/products/pen.webp';
 import pinkbracelate from '../assets/images/products/pinkbracelate.webp';
-import { Link } from 'react-router-dom';
 
-
-const BestSellers = () => {
-  const products = [
+const Products = () => {
+ const products = [
     { name: 'Cute keychains featuring everyone`s fav cartoon duo', price: 'Contact Us', image: tomjerrykeychain, rating: 4.8 },
     { name: 'Adorable beaded flower keychains', price: 'Contact Us', image: beadedflowerkeychain, rating: 4.9 },
     { name: 'personalized letter beads bracelets', price: 'Contact Us', image: personalizedbracelates, rating: 4.7 },
@@ -91,19 +89,9 @@ const BestSellers = () => {
             </div>
           ))}
         </div>
-
-        <div className="text-center mt-12">
-          <Link rel="stylesheet" to="/shop" className="bg-[#f6dfd7] text-black px-8 py-3 rounded-full transition-colors font-medium border-2 border-transparent hover:border-[#b58983]">
-          View All Products
-          </Link>
-          
-          {/* <button className="bg-[#f6dfd7] text-black px-8 py-3 rounded-full transition-colors font-medium border-2 border-transparent hover:border-[#b58983]">
-            View All Products
-          </button> */}
-        </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default BestSellers;
+export default Products

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import logo from '../assets/images/logo.jpeg';
 import { Menu, X } from 'lucide-react';
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -25,16 +26,18 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              {['HOME', 'SHOP', 'CONTACT US'].map((item, index) => (
-                <a
-                  key={index}
-                  href="#"
-                  className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]"
-                >
-                  {item}
-                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
-                </a>
-              ))}
+              <Link to="/" className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]">
+                HOME
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+              <Link to="/shop" className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]">
+                SHOP
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+              <Link to="/contact" className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]">
+                CONTACT US
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
+              </Link>
             </nav>
 
             {/* Mobile Menu Button */}
@@ -50,16 +53,15 @@ const Header = () => {
         {isDrawerOpen && (
           <div className="md:hidden bg-white shadow-lg border-t border-gray-100 absolute w-full left-0 top-full z-40">
             <nav className="flex flex-col items-start px-4 py-4 space-y-4">
-              {['HOME', 'SHOP', 'CONTACT US'].map((item, index) => (
-                <a
-                  key={index}
-                  href="#"
-                  className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]"
-                >
-                  {item}
-                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
-                </a>
-              ))}
+              <Link to="/" onClick={() => setIsDrawerOpen(false)} className="font-serif text-gray-900 font-medium hover:text-[#d0a19b]">
+                HOME
+              </Link>
+              <Link to="/shop" onClick={() => setIsDrawerOpen(false)} className="font-serif text-gray-900 font-medium hover:text-[#d0a19b]">
+                SHOP
+              </Link>
+              <Link to="/contact" onClick={() => setIsDrawerOpen(false)} className="font-serif text-gray-900 font-medium hover:text-[#d0a19b]">
+                CONTACT US
+              </Link>
             </nav>
           </div>
         )}
