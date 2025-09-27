@@ -5,7 +5,7 @@ const Faqs: React.FC = () => {
     <div className="bg-white flex items-center justify-center px-6 py-12">
       <div className="max-w-3xl w-full">
         {/* Heading */}
-        <h2 className="text-8xl font-bold text-[#f6dfd7] mb-6 text-center custom-font">Frequently Asked Questions</h2>
+        <h2 className="text-8xl font-bold text-[#d0a19b] mb-6 text-center custom-font">Frequently Asked Questions</h2>
 
         {/* FAQ List */}
         <div className="space-y-6">
@@ -55,10 +55,7 @@ const Faqs: React.FC = () => {
               5. How can I contact you?
             </h3>
             <p className="text-gray-600 leading-relaxed">
-              You can use the Contact page on our website or email us at{" "}
-              <a href="mailto:contact@zjcraftshub.com" className="text-[#d0a19b] font-medium hover:underline">
-                contact@zjcraftshub.com
-              </a>.
+              You can use the Contact page on our website or Whatssapp us at <b>(+92) 300 3123154</b>.
             </p>
           </div>
         </div>

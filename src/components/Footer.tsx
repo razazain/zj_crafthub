@@ -41,7 +41,7 @@ const Footer = () => {
             placeholder="Your email address"
             className="flex-1 px-4 py-3 rounded-l-full border border-gray-300 focus:outline-none text-sm"
           />
-          <button className="bg-gray-800 text-white px-6 py-3 rounded-r-full text-sm font-semibold hover:bg-black transition-colors">
+          <button className="bg-[#d0a19b] text-white px-6 py-3 rounded-r-full text-sm font-semibold hover:bg-[#d0a19b] transition-colors">
             SUBSCRIBE
           </button>
         </div>
@@ -56,8 +56,8 @@ const Footer = () => {
         {/* Bottom Info */}
         <div className="text-sm text-gray-500">
           MADE BY LOVE |
-          <span className="font-semibold text-gray-700"> (+91) 123 567990 </span> |
-          <a href="mailto:contact@learts.com" className="hover:text-black"> contact@zjcraftshub.com</a>
+          <span className="font-semibold text-gray-700"> (+92) 300 3123154 </span> |
+          {/* <a href="mailto:contact@learts.com" className="hover:text-black"> contact@zjcraftshub.com</a> */}
         </div>
       </div>
     </footer>

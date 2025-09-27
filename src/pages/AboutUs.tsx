@@ -5,7 +5,7 @@ const AboutUs: React.FC = () => {
     <div className="bg-white flex items-center justify-center px-6 py-12">
       <div className="max-w-3xl text-center">
         {/* Heading */}
-        <h2 className="text-8xl font-bold text-[#f6dfd7] mb-6 custom-font">About Us</h2>
+        <h2 className="text-8xl font-bold text-[#d0a19b] mb-6 custom-font">About Us</h2>
 
         {/* Description */}
         <p className="text-gray-600 leading-relaxed mb-4">

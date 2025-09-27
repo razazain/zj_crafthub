@@ -6,7 +6,7 @@ const PromotionalStrips = () => {
       <div className="max-w-7xl mx-auto px-4">
         {/* Main Promotional Message */}
         <div className="text-center mb-8">
-          <h2 className="text-5xl md:text-8xl text-[#f6dfd7] mb-2 custom-font">
+          <h2 className="text-5xl md:text-8xl text-[#d0a19b] mb-2 custom-font">
             Just for you
           </h2>
           <div className="flex items-center justify-center gap-3 text-gray-600">
@@ -26,7 +26,7 @@ const PromotionalStrips = () => {
             </svg>
 
             {/* Text */}
-            <span className="text-lg md:text-4xl text-black font-medium">Making & crafting</span>
+            <span className="text-md md:text-3xl text-gray font-medium font-serif">Making & crafting</span>
 
             {/* Right Heart */}
             <svg

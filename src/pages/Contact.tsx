@@ -5,7 +5,7 @@ const Contact: React.FC = () => {
     <div className="bg-white flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-lg p-8">
         {/* Heading */}
-        <h2 className="text-8xl font-bold text-[#f6dfd7] text-center mb-6 custom-font">
+        <h2 className="text-8xl font-bold text-[#d0a19b] text-center mb-6 custom-font">
           Contact Us
         </h2>
 
@@ -19,7 +19,7 @@ const Contact: React.FC = () => {
             <input
               type="text"
               placeholder="Enter your name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-gray-700"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d0a19b] text-gray-700"
             />
           </div>
 
@@ -31,7 +31,19 @@ const Contact: React.FC = () => {
             <input
               type="email"
               placeholder="Enter your email"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-gray-700"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d0a19b] text-gray-700"
+            />
+          </div>
+
+          {/* Phpone number */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Phone Number
+            </label>
+            <input
+              type="number"
+              placeholder="Enter your PHone Number"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d0a19b] text-gray-700"
             />
           </div>
 
@@ -43,14 +55,14 @@ const Contact: React.FC = () => {
             <textarea
               rows={4}
               placeholder="Write your message..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 text-gray-700"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d0a19b] text-gray-700"
             ></textarea>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-[#f6dfd7] text-gray-800 py-2 rounded-lg font-semibold hover:bg-[#e4c5bb] transition-colors"
+            className="w-full bg-[#f6dfd7] text-gray-800 py-2 rounded-lg  border-2 border-transparent font-semibold hover:border-[#d0a19b] "
           >
             Send Message
           </button>
