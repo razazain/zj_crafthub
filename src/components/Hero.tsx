@@ -18,7 +18,7 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="relative h-[500px] md:h-[600px] overflow-hidden">
+    <section className="relative w-full h-[400px] md:h-[500px] overflow-hidden">
       {/* Background Slider Layer */}
       <div className="absolute inset-0 z-0">
         {backgroundImages.map((img, index) => (

@@ -7,6 +7,9 @@ import Contact from './pages/Contact';
 import AboutUs from './pages/AboutUs';
 import Policy from './pages/Policy';
 import Faqs from './pages/Faqs';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 
 function App() {
   return (

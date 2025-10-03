@@ -21,6 +21,18 @@
   font-style: normal;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  background-color: #fff;    
+  overflow-x: hidden;         
+}
+
 .custom-font {
   font-family: 'Modesty', cursive;
 }
