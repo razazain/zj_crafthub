@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Slider from "react-slick";
 import { API_URL } from "../config";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 
 interface Category {
   _id: string;
@@ -26,6 +27,7 @@ const CategoryHighlights: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
 
+  // ✅ Fetch categories once
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -43,13 +45,13 @@ const CategoryHighlights: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Slider settings
+  // ✅ Slider settings
   const settings = {
     dots: false,
     infinite: true,
     autoplay: true,
     autoplaySpeed: 2500,
-    speed: 600,
+    speed: 500,
     slidesToShow: 3,
     slidesToScroll: 1,
     responsive: [
@@ -58,24 +60,25 @@ const CategoryHighlights: React.FC = () => {
     ],
   };
 
-  // Fetch products by category
-  const fetchProductsByCategory = async (category: Category) => {
+  // ✅ Fetch products (memoized for smoother re-renders)
+  const fetchProductsByCategory = useCallback(async (category: Category) => {
     setSelectedCategory(category);
     setShowModal(true);
     setModalLoading(true);
+    setProducts([]);
 
     try {
-      const res = await fetch(`${API_URL}/products/category?${category._id}`);
+      const res = await fetch(`${API_URL}/products/category/${category._id}`);
       const data = await res.json();
       if (data.success && data.products) {
-        setProducts(data.products.slice(0, 3)); // show only first 3
+        setProducts(data.products.slice(0, 3));
       }
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
       setModalLoading(false);
     }
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -95,10 +98,10 @@ const CategoryHighlights: React.FC = () => {
               className="px-4 cursor-pointer"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
               onClick={() => fetchProductsByCategory(cat)}
             >
-              <div className="flex flex-col rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+              <div className="flex flex-col rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white">
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src={cat.images?.[0]?.url}
@@ -125,27 +128,28 @@ const CategoryHighlights: React.FC = () => {
       <AnimatePresence>
         {showModal && (
           <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 px-3 sm:px-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
             <motion.div
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 relative overflow-hidden"
-              initial={{ scale: 0.8, opacity: 0, y: 50 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 50 }}
-              transition={{ type: "spring", stiffness: 120, damping: 14 }}
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-md sm:max-w-2xl p-5 relative"
+              initial={{ opacity: 0, y: 60 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 60 }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
             >
               {/* Close Button */}
               <button
                 onClick={() => setShowModal(false)}
-                className="absolute top-3 right-3 bg-gray-100 hover:bg-gray-200 rounded-full p-1"
+                className="absolute top-3 right-3 bg-gray-100 hover:bg-gray-200 rounded-full p-1 text-gray-700"
               >
-                ❌
+                ✕
               </button>
 
-              <h2 className="text-2xl font-semibold text-center text-gray-800 mb-5">
+              <h2 className="text-xl sm:text-2xl font-semibold text-center text-gray-800 mb-5">
                 {selectedCategory?.name} Products
               </h2>
 
@@ -158,13 +162,13 @@ const CategoryHighlights: React.FC = () => {
                   {products.map((p) => (
                     <motion.div
                       key={p._id}
-                      className="border rounded-xl p-3 hover:shadow-lg transition-all duration-300"
-                      whileHover={{ scale: 1.03 }}
+                      className="border rounded-xl p-3 hover:shadow-lg transition-all duration-300 bg-white"
+                      whileHover={{ scale: 1.02 }}
                     >
                       <img
                         src={p.images?.[0]?.url}
                         alt={p.images?.[0]?.alt || p.name}
-                        className="w-full h-40 object-cover rounded-lg"
+                        className="w-full h-40 sm:h-48 object-cover rounded-lg"
                       />
                       <h4 className="text-base font-semibold text-gray-800 mt-2 truncate">
                         {p.name}
@@ -172,7 +176,18 @@ const CategoryHighlights: React.FC = () => {
                       <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                         {p.description}
                       </p>
-                      <p className="text-pink-600 font-bold mt-2">${p.price}</p>
+                      <button
+                        onClick={() => {
+                          const phoneNumber = "923003123154";
+                          const message = `Hello! I'm interested in your product:\n\n*${p.name}*\nPlease share the price.\n\nCan you tell me more about it?`;
+                          const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+                          window.open(whatsappUrl, "_blank");
+                        }}
+                        className="relative w-full mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+                      >
+                        <span className="relative z-10">Contact Us</span>
+                        <div className="absolute inset-0 bg-white opacity-0 hover:opacity-10 transition-opacity duration-300"></div>
+                      </button>
                     </motion.div>
                   ))}
                 </div>
@@ -182,19 +197,18 @@ const CategoryHighlights: React.FC = () => {
 
               {/* View All Button */}
               {!modalLoading && products.length > 0 && (
-                <div className="flex justify-center mt-6">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-full shadow-md transition-all"
-                    onClick={() =>
-                      window.location.href = `/category/${selectedCategory?._id}`
-                    }
-                  >
-                    View All Products
-                  </motion.button>
+                <div className="text-center mt-16">
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Link
+                      to="/shop"
+                      className="bg-[#f6dfd7] text-black px-8 py-3 rounded-full font-medium border-2 border-transparent hover:border-[#b58983] transition-all duration-300"
+                    >
+                      View All Products
+                    </Link>
+                  </motion.div>
                 </div>
               )}
+
             </motion.div>
           </motion.div>
         )}

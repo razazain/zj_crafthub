@@ -14,7 +14,7 @@ const BestSellers = () => {
   useEffect(() => {
     const fetchBestSellers = async () => {
       try {
-        const res = await fetch(`${API_URL}/products/bestseller`);
+        const res = await fetch(`${API_URL}/products/filter/bestseller`);
         const data = await res.json();
         if (data.success) setProducts(data.products);
       } catch (error) {

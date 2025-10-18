@@ -56,8 +56,15 @@ const Footer = () => {
         {/* Bottom Info */}
         <div className="text-sm text-gray-500">
           MADE BY LOVE |
-          <span className="font-semibold text-gray-700"> (+92) 300 3123154 </span> |
-          {/* <a href="mailto:contact@learts.com" className="hover:text-black"> contact@zjcraftshub.com</a> */}
+          <a
+            href="https://wa.me/923003123154"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-gray-700 hover:text-[#d0a19b] transition-colors duration-300"
+          >
+            {' '}(+92) 300 3123154{' '}
+          </a>
+          |
         </div>
       </div>
     </footer>

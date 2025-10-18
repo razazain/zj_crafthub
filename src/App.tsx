@@ -7,6 +7,7 @@ import Contact from './pages/Contact';
 import AboutUs from './pages/AboutUs';
 import Policy from './pages/Policy';
 import Faqs from './pages/Faqs';
+import Profile from './pages/Profile';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
@@ -22,6 +23,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/profile" element={<Profile />} />
 
 
           <Route path="/aboutus" element={<AboutUs />} />
