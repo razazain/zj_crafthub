@@ -1,8 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Heart, ShoppingCart, Star, ChevronLeft, ChevronRight, X, CheckCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { API_URL } from '../config';
-import toast, { Toaster } from 'react-hot-toast'; // ✅ import toast
+import React, { useEffect, useState } from "react";
+import {
+  Heart,
+  ShoppingCart,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  CheckCircle,
+} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { API_URL } from "../config";
+import toast, { Toaster } from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const BestSellers = () => {
   const [products, setProducts] = useState([]);
@@ -11,6 +20,15 @@ const BestSellers = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [feedback, setFeedback] = useState(null);
 
+  // 🛒 Add to Cart Modal State
+  const [cartModal, setCartModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [addingToCart, setAddingToCart] = useState(false);
+
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     const fetchBestSellers = async () => {
       try {
@@ -18,26 +36,25 @@ const BestSellers = () => {
         const data = await res.json();
         if (data.success) setProducts(data.products);
       } catch (error) {
-        console.error('Error fetching best sellers:', error);
+        console.error("Error fetching best sellers:", error);
       }
     };
     fetchBestSellers();
   }, []);
 
-  const token = localStorage.getItem('token');
-
   // ❤️ Add to Wishlist
   const handleAddToWishlist = async (productId) => {
     if (!token) {
-      toast.error('Please log in to add to your wishlist 💕');
+      toast.error("Please log in to add to your wishlist 💕");
+      setTimeout(() => navigate("/profile"), 1500);
       return;
     }
 
     try {
       const res = await fetch(`${API_URL}/wishlist`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ productId }),
@@ -45,50 +62,64 @@ const BestSellers = () => {
 
       const data = await res.json();
       if (data.success) {
-        showFeedback('Added to Wishlist 💖');
-        toast.success('Added to Wishlist 💖');
+        showFeedback("Added to Wishlist 💖");
+        toast.success("Added to Wishlist 💖");
       } else {
-        toast.error(data.message || 'Something went wrong');
+        toast.error(data.message || "Something went wrong");
       }
     } catch (error) {
-      console.error('Wishlist Error:', error);
-      toast.error('Wishlist Error ❌');
+      console.error("Wishlist Error:", error);
+      toast.error("Wishlist Error ❌");
     }
   };
 
-  // 🛒 Add to Cart
-  const handleAddToCart = async (productId) => {
+  // 🛒 Open Modal for Add to Cart
+  const openCartModal = (product) => {
     if (!token) {
-      toast.error('Please log in to add to your cart 🛒');
+      toast.error("Please log in to add to your cart 🛒");
+      setTimeout(() => navigate("/profile"), 1500);
+      return;
+    }
+    setSelectedProduct(product);
+    setQuantity(1);
+    setCartModal(true);
+  };
+
+  // 🛍️ Confirm Add to Cart
+  const handleAddToCart = async () => {
+    if (!selectedProduct || !quantity || quantity <= 0) {
+      toast.error("Please enter a valid quantity");
       return;
     }
 
-    const quantity = prompt('Enter quantity:', 1);
-    if (!quantity || isNaN(quantity) || quantity <= 0) {
-      toast.error('Please enter a valid quantity');
-      return;
-    }
+    setAddingToCart(true);
 
     try {
       const res = await fetch(`${API_URL}/cart`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ productId, quantity: Number(quantity) }),
+        body: JSON.stringify({
+          productId: selectedProduct._id,
+          quantity: Number(quantity),
+        }),
       });
 
       const data = await res.json();
       if (data.success) {
-        showFeedback('Added to Cart 🛍️');
-        toast.success('Added to Cart 🛍️');
+        showFeedback("Added to Cart 🛍️");
+        toast.success("Added to Cart 🛍️");
+        setCartModal(false);
       } else {
-        toast.error(data.message || 'Something went wrong');
+        toast.error(data.message || "Something went wrong");
       }
     } catch (error) {
-      console.error('Cart Error:', error);
-      toast.error('Cart Error ❌');
+      console.error("Cart Error:", error);
+      toast.error("Cart Error ❌");
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -97,29 +128,32 @@ const BestSellers = () => {
     setTimeout(() => setFeedback(null), 2000);
   };
 
+  // 🖼️ Image Modal Logic
   const openModal = (images, index = 0) => {
     setSelectedImages(images || []);
     setCurrentImageIndex(index);
     setModalOpen(true);
   };
   const closeModal = () => setModalOpen(false);
-  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % selectedImages.length);
+  const nextImage = () =>
+    setCurrentImageIndex((prev) => (prev + 1) % selectedImages.length);
   const prevImage = () =>
-    setCurrentImageIndex((prev) => (prev === 0 ? selectedImages.length - 1 : prev - 1));
+    setCurrentImageIndex((prev) =>
+      prev === 0 ? selectedImages.length - 1 : prev - 1
+    );
 
   return (
     <section className="py-16 bg-gray-50 relative">
-      {/* ✅ Toast container */}
       <Toaster
         position="top-center"
         toastOptions={{
           style: {
-            background: '#fff',
-            border: '1px solid #f3c6c3',
-            color: '#333',
-            fontSize: '14px',
+            background: "#fff",
+            border: "1px solid #f3c6c3",
+            color: "#333",
+            fontSize: "14px",
           },
-          success: { iconTheme: { primary: '#d0a19b', secondary: '#fff' } },
+          success: { iconTheme: { primary: "#d0a19b", secondary: "#fff" } },
         }}
       />
 
@@ -147,7 +181,7 @@ const BestSellers = () => {
                     <Heart className="w-4 h-4 text-gray-600" />
                   </button>
                   <button
-                    onClick={() => handleAddToCart(product._id)}
+                    onClick={() => openCartModal(product)}
                     className="bg-white p-2 rounded-full shadow-md hover:bg-pink-50 transition transform hover:scale-110"
                   >
                     <ShoppingCart className="w-4 h-4 text-gray-600" />
@@ -157,16 +191,19 @@ const BestSellers = () => {
 
               <div className="p-5 flex flex-col justify-between h-44">
                 <div>
-                  <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">{product.name}</h3>
+                  <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+                    {product.name}
+                  </h3>
 
                   <div className="flex items-center mb-2">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-4 h-4 ${i < Math.floor(product.ratings?.average || 0)
-                            ? 'text-yellow-400 fill-current'
-                            : 'text-gray-300'
-                          }`}
+                        className={`w-4 h-4 ${
+                          i < Math.floor(product.ratings?.average || 0)
+                            ? "text-yellow-400 fill-current"
+                            : "text-gray-300"
+                        }`}
                       />
                     ))}
                     <span className="text-xs text-gray-500 ml-2">
@@ -174,14 +211,18 @@ const BestSellers = () => {
                     </span>
                   </div>
 
-                  <p className="text-sm text-gray-500 line-clamp-2">{product.description}</p>
+                  <p className="text-sm text-gray-500 line-clamp-2">
+                    {product.description}
+                  </p>
                 </div>
 
                 <button
                   onClick={() => {
-                    const phoneNumber = "923003123154"; 
-                    const message = `Hello! I'm interested in your product:\n\n *${product.name}*\n 'Please share the price'}\n\nCan you tell me more about it?`;
-                    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+                    const phoneNumber = "923003123154";
+                    const message = `Hello! I'm interested in your product:\n\n*${product.name}*\nPlease share the price.\n\nCan you tell me more about it?`;
+                    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+                      message
+                    )}`;
                     window.open(whatsappUrl, "_blank");
                   }}
                   className="relative mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg"
@@ -204,6 +245,70 @@ const BestSellers = () => {
         </div>
       </div>
 
+      {/* 🛍️ Add to Cart Modal */}
+      <AnimatePresence>
+        {cartModal && selectedProduct && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl relative"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <button
+                onClick={() => setCartModal(false)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h2 className="text-xl font-semibold text-gray-800 text-center mb-4">
+                Add to Cart
+              </h2>
+
+              <div className="flex flex-col items-center">
+                <img
+                  src={selectedProduct.images?.[0]?.url}
+                  alt={selectedProduct.name}
+                  className="w-32 h-32 object-cover rounded-xl mb-3"
+                />
+                <h3 className="text-lg font-medium text-gray-700 text-center">
+                  {selectedProduct.name}
+                </h3>
+              </div>
+
+              <div className="mt-5">
+                <label className="block text-gray-600 font-medium mb-1">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value))}
+                  className="w-full border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-[#e8c3bd]"
+                />
+              </div>
+
+              <button
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+                className="mt-6 w-full py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full transition-transform duration-300 hover:scale-105 hover:shadow-lg disabled:opacity-60"
+              >
+                {addingToCart ? "Adding..." : "Add to Cart"}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 🖼️ Image Preview Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
           <div className="relative max-w-3xl w-full mx-4">
@@ -238,6 +343,7 @@ const BestSellers = () => {
         </div>
       )}
 
+      {/* ✅ Floating feedback */}
       {feedback && (
         <div className="fixed top-6 right-6 bg-white shadow-lg border border-pink-200 px-6 py-3 rounded-full flex items-center space-x-2 animate-bounce z-50">
           <CheckCircle className="text-pink-400 w-5 h-5" />

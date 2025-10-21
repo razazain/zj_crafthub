@@ -222,7 +222,7 @@ const Profile: React.FC = () => {
                 <Toaster position="top-center" />
                 <div className="max-w-lg w-full p-8 border rounded-2xl shadow-md bg-[#fdfaf9]">
                     <img
-                        src={user.profileImage?.url || "https://via.placeholder.com/150"}
+                        src={user.profileImage?.url || "http://img.freepik.com/premium-vector/vector-flat-illustration-grayscale-avatar-user-profile-person-icon-gender-neutral-silhouette-profile-picture-suitable-social-media-profiles-icons-screensavers-as-templatex9xa_719432-2210.jpg?semt=ais_hybrid&w=740&q=80"}
                         alt={user.name}
                         className="w-32 h-32 mx-auto rounded-full border-4 border-[#d0a19b] object-cover mb-4"
                     />
@@ -355,7 +355,7 @@ const Profile: React.FC = () => {
         <div className="bg-white flex items-center justify-center px-4 py-12">
             <Toaster position="top-center" />
             <div className="w-full max-w-lg p-8">
-                <h2 className="text-6xl font-bold text-[#d0a19b] text-center mb-8">
+                <h2 className="text-8xl font-bold text-[#d0a19b] text-center mb-8 custom-font">
                     {activeTab === "login" ? "Login" : "Register"}
                 </h2>
 
