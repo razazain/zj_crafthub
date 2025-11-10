@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { API_URL } from "../config";
