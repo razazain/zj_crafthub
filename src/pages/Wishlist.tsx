@@ -8,7 +8,7 @@ interface WishlistItem {
   product: {
     _id: string;
     name: string;
-    description: string;
+    description?: string;
     price: number;
     images: { url: string; alt: string }[];
   };
@@ -17,6 +17,9 @@ interface WishlistItem {
 const Wishlist: React.FC = () => {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<WishlistItem["product"] | null>(null);
+  const [quantity, setQuantity] = useState(1);
 
   const token = localStorage.getItem("token");
 
@@ -24,14 +27,10 @@ const Wishlist: React.FC = () => {
   const fetchWishlist = async () => {
     try {
       const res = await fetch(`${API_URL}/wishlist`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (data.success) {
-        setWishlist(data.wishlist || []);
-      }
+      if (data.success) setWishlist(data.wishlist || []);
     } catch (err) {
       console.error("Error fetching wishlist:", err);
       toast.error("Failed to load wishlist");
@@ -45,21 +44,48 @@ const Wishlist: React.FC = () => {
     try {
       const res = await fetch(`${API_URL}/wishlist/${productId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
 
       if (data.success) {
         setWishlist((prev) => prev.filter((item) => item.product._id !== productId));
         toast.success("Removed from wishlist");
-      } else {
-        toast.error(data.message || "Error removing item");
-      }
+      } else toast.error(data.message || "Error removing item");
     } catch (err) {
       console.error("Error removing wishlist item:", err);
       toast.error("Failed to remove item");
+    }
+  };
+
+  // ✅ Add to Cart
+  const submitToCart = async () => {
+    if (!selectedProduct) return;
+    try {
+      const res = await fetch(`${API_URL}/cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId: selectedProduct._id,
+          quantity,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Added to cart successfully");
+        setShowCartModal(false);
+        setQuantity(1);
+      } else {
+        toast.error(data.message || "Failed to add to cart");
+      }
+    } catch (err) {
+      console.error("Error adding to cart:", err);
+      toast.error("Error adding to cart");
     }
   };
 
@@ -116,11 +142,15 @@ const Wishlist: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-800 truncate">
                       {item.product.name}
                     </h3>
+                    <p className="text-[#d0a19b] font-medium text-md">
+                      Rs {item.product.price}
+                    </p>
                     <p className="text-sm text-gray-500 line-clamp-2">
                       {item.product.description}
                     </p>
 
-                    <div className="mt-4 flex justify-between items-center">
+                    <div className="mt-4 flex flex-wrap gap-2 justify-between items-center">
+                      {/* WhatsApp Button */}
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -130,11 +160,25 @@ const Wishlist: React.FC = () => {
                           const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
                           window.open(whatsappUrl, "_blank");
                         }}
-                        className="px-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] w-100 text-white rounded-full text-sm font-medium transition-all duration-300 hover:shadow-lg"
+                        className="px-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white rounded-full text-sm font-medium transition-all duration-300 hover:shadow-lg"
                       >
-                        Contact Us
+                        For Customization
                       </motion.button>
 
+                      {/* Add to Cart */}
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setSelectedProduct(item.product);
+                          setShowCartModal(true);
+                        }}
+                        className="px-4 py-2 bg-[#d0a19b]/10 text-[#d0a19b] rounded-full text-sm font-medium hover:bg-[#d0a19b]/20 transition"
+                      >
+                        Add to Cart
+                      </motion.button>
+
+                      {/* Remove */}
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -151,6 +195,60 @@ const Wishlist: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ✅ Add to Cart Modal */}
+      <AnimatePresence>
+        {showCartModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm text-center relative"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+            >
+              <button
+                onClick={() => setShowCartModal(false)}
+                className="absolute top-3 right-3 bg-gray-100 hover:bg-gray-200 rounded-full p-1 text-gray-700"
+              >
+                ✕
+              </button>
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                Add to Cart
+              </h3>
+
+              <img
+                src={selectedProduct?.images?.[0]?.url}
+                alt={selectedProduct?.name}
+                className="w-32 h-32 object-cover mx-auto rounded-lg mb-3"
+              />
+
+              <p className="text-sm text-gray-600 mb-1">{selectedProduct?.name}</p>
+              <p className="text-[#d0a19b] font-semibold mb-4">
+                Rs {selectedProduct?.price}
+              </p>
+
+              <input
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="border rounded-lg w-full p-2 text-center focus:ring-2 focus:ring-[#d0a19b] outline-none mb-4"
+              />
+              <button
+                onClick={submitToCart}
+                className="w-full bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full py-2 hover:scale-105 transition-transform"
+              >
+                Confirm
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };

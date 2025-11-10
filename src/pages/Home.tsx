@@ -1,6 +1,5 @@
 import React from 'react'
 import Hero from '../components/Hero';
-import PromotionalStrips from '../components/PromotionalStrips';
 import BestSellers from '../components/BestSellers';
 import CategoryHighlights from '../components/CategoryHighlights';
 // import Footer from '../components/Footer';

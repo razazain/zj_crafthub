@@ -8,8 +8,15 @@ const Header = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
+
+  // ✅ Check login state
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   // ✅ Fetch Wishlist Count
   const fetchWishlistCount = async () => {
@@ -18,9 +25,7 @@ const Header = () => {
 
     try {
       const res = await fetch(`${API_URL}/wishlist`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -39,9 +44,7 @@ const Header = () => {
 
     try {
       const res = await fetch(`${API_URL}/cart`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -61,7 +64,6 @@ const Header = () => {
 
   return (
     <>
-      {/* Main Navigation */}
       <header className="bg-white shadow-sm border-b border-gray-100 relative z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -82,7 +84,7 @@ const Header = () => {
               </div>
             </div>
 
-            {/* Desktop Navigation */}
+            {/* ✅ Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <Link
                 to="/"
@@ -105,6 +107,17 @@ const Header = () => {
                 CONTACT US
                 <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
               </Link>
+
+              {/* ✅ Show "My Orders" only if logged in */}
+              {isLoggedIn && (
+                <Link
+                  to="/my-orders"
+                  className="group relative font-serif text-gray-900 font-medium transition-colors duration-300 hover:text-[#d0a19b]"
+                >
+                  MY ORDERS
+                  <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-[#d0a19b] transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+              )}
             </nav>
 
             {/* ✅ Right Side Icons */}
@@ -168,6 +181,17 @@ const Header = () => {
               >
                 CONTACT US
               </Link>
+
+              {/* ✅ My Orders (mobile view) */}
+              {isLoggedIn && (
+                <Link
+                  to="/my-orders"
+                  onClick={() => setIsDrawerOpen(false)}
+                  className="font-serif text-gray-900 font-medium hover:text-[#d0a19b]"
+                >
+                  MY ORDERS
+                </Link>
+              )}
 
               {/* ✅ Icons in Mobile Menu */}
               <div className="flex items-center space-x-6 pt-4 border-t border-gray-200 w-full">

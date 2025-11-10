@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Trash2, Plus, Minus, ShoppingBag, Loader2, MessageCircle } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingBag,
+  Loader2,
+  MessageCircle,
+} from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { API_URL } from "../config";
+import { useNavigate } from "react-router-dom";
 
 interface CartItem {
   product: {
     _id: string;
     name: string;
     description: string;
+    price: number;
     images: { url: string; alt: string }[];
   };
   quantity: number;
@@ -16,6 +25,7 @@ interface CartItem {
 const Cart: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
   // ✅ Fetch Cart
@@ -61,7 +71,6 @@ const Cart: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success("Quantity updated 💖");
         fetchCart();
       }
     } catch (error) {
@@ -106,11 +115,33 @@ const Cart: React.FC = () => {
     }
   };
 
-  // 📱 Contact on WhatsApp
+  // 💬 WhatsApp
   const handleWhatsApp = (productName: string) => {
-    const phone = "923003123154"; 
+    const phone = "923003123154";
     const message = `Hello! I'm interested in "${productName}". Could you please tell me the price?`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, "_blank");
+    window.open(
+      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`,
+      "_blank"
+    );
+  };
+
+  // 🧾 Price Calculations
+  const deliveryCharge = 300;
+  const subtotal = cart.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
+  const total = subtotal + deliveryCharge;
+
+  // 🚀 Go to Checkout
+  const handleCheckout = () => {
+    const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    const deliveryCharge = 300;
+    const total = subtotal + deliveryCharge;
+
+    navigate("/checkout", {
+      state: { cart, subtotal, deliveryCharge, total },
+    });
   };
 
   return (
@@ -143,8 +174,9 @@ const Cart: React.FC = () => {
             <p>Your cart is empty. Start shopping!</p>
           </div>
         ) : (
-          <>
-            <div className="space-y-6">
+          <div className="grid md:grid-cols-3 gap-10">
+            {/* 🛒 Cart Items */}
+            <div className="md:col-span-2 space-y-6">
               {cart.map((item, i) => (
                 <div
                   key={i}
@@ -157,20 +189,25 @@ const Cart: React.FC = () => {
                   />
 
                   <div className="flex-1 md:ml-6 text-center md:text-left">
-                    <h3 className="font-semibold text-gray-800">
+                    <h3 className="font-semibold text-gray-800 text-lg">
                       {item.product.name}
                     </h3>
                     <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                       {item.product.description}
                     </p>
+                    <p className="text-[#d0a19b] font-semibold mt-2">
+                      Rs {item.product.price} × {item.quantity} ={" "}
+                      <span className="text-gray-800">
+                        Rs {item.product.price * item.quantity}
+                      </span>
+                    </p>
 
-                    {/* 💬 Contact Button */}
                     <button
                       onClick={() => handleWhatsApp(item.product.name)}
                       className="mt-3 flex items-center justify-center gap-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white px-5 py-2 rounded-full hover:scale-105 transition-transform w-fit mx-auto md:mx-0"
                     >
                       <MessageCircle className="w-4 h-4" />
-                      Contact for Price
+                      Contact For Customization
                     </button>
                   </div>
 
@@ -206,17 +243,48 @@ const Cart: React.FC = () => {
                   </div>
                 </div>
               ))}
+
+              <div className="text-right mt-6">
+                <button
+                  onClick={clearCart}
+                  className="bg-[#f6dfd7] text-gray-700 px-5 py-2 rounded-full hover:bg-[#e8c3bd] transition"
+                >
+                  Clear Cart
+                </button>
+              </div>
             </div>
 
-            <div className="mt-10 text-right">
+            {/* 💰 Summary Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-pink-100 p-6 h-fit sticky top-24">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                Order Summary
+              </h3>
+
+              <div className="flex justify-between text-gray-700 mb-2">
+                <span>Subtotal</span>
+                <span>Rs {subtotal}</span>
+              </div>
+
+              <div className="flex justify-between text-gray-700 mb-2">
+                <span>Delivery Charges</span>
+                <span>Rs {deliveryCharge}</span>
+              </div>
+
+              <hr className="my-3" />
+
+              <div className="flex justify-between text-lg font-semibold text-gray-800">
+                <span>Total</span>
+                <span>Rs {total}</span>
+              </div>
+
               <button
-                onClick={clearCart}
-                className="bg-[#f6dfd7] text-gray-700 px-5 py-2 rounded-full hover:bg-[#e8c3bd] transition"
+                onClick={handleCheckout}
+                className="bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium px-8 py-3 rounded-full hover:scale-105 transition-transform mt-6"
               >
-                Clear Cart
+                Proceed to Checkout
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </section>

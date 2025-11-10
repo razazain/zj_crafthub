@@ -6,6 +6,7 @@ interface UserProfile {
     _id: string;
     name: string;
     email: string;
+    phoneNumber: string;
     profileImage?: {
         url: string;
         alt: string;
@@ -22,6 +23,7 @@ const Profile: React.FC = () => {
     const [formData, setFormData] = useState({
         name: "",
         email: "",
+        phoneNumber: "",
         password: "",
         profileImage: null as File | null,
     });
@@ -56,6 +58,7 @@ const Profile: React.FC = () => {
                         ...prev,
                         name: data.user.name,
                         email: data.user.email,
+                        phoneNumber: data.user.phoneNumber,
                     }));
                 } else {
                     localStorage.removeItem("token");
@@ -88,6 +91,7 @@ const Profile: React.FC = () => {
             const formDataToSend = new FormData();
             formDataToSend.append("name", formData.name);
             formDataToSend.append("email", formData.email);
+            formDataToSend.append("phoneNumber", formData.phoneNumber);
             formDataToSend.append("password", formData.password);
             if (formData.profileImage) {
                 formDataToSend.append("profileImage", formData.profileImage);
@@ -147,6 +151,7 @@ const Profile: React.FC = () => {
             const formDataToSend = new FormData();
             formDataToSend.append("name", formData.name);
             formDataToSend.append("email", formData.email);
+            formDataToSend.append("phoneNumber", formData.phoneNumber);
             if (formData.profileImage) {
                 formDataToSend.append("profileImage", formData.profileImage);
             }
@@ -230,6 +235,7 @@ const Profile: React.FC = () => {
                         {user.name}
                     </h2>
                     <p className="text-gray-700 text-center mb-1">{user.email}</p>
+                    <p className="text-gray-700 text-center mb-1">{user.phoneNumber}</p>
 
                     <div className="flex justify-center gap-3 mt-6">
                         <button
@@ -275,6 +281,15 @@ const Profile: React.FC = () => {
                                 onChange={handleChange}
                                 placeholder="Email"
                                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d0a19b]"
+                            />
+
+                            <input
+                                type="text"
+                                name="phoneNumber"
+                                placeholder="Phone Number"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border rounded-lg"
                             />
 
                             <input
@@ -414,6 +429,14 @@ const Profile: React.FC = () => {
                             name="name"
                             placeholder="Full Name"
                             value={formData.name}
+                            onChange={handleChange}
+                            className="w-full px-4 py-2 border rounded-lg"
+                        />
+                        <input
+                            type="text"
+                            name="phoneNumber"
+                            placeholder="Phone Number"
+                            value={formData.phoneNumber}
                             onChange={handleChange}
                             className="w-full px-4 py-2 border rounded-lg"
                         />

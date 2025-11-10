@@ -2,7 +2,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import Slider from "react-slick";
 import { API_URL } from "../config";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 
 interface Category {
   _id: string;
@@ -26,6 +27,13 @@ const CategoryHighlights: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+
+  // Cart Quantity Modal
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [quantity, setQuantity] = useState(1);
+
+  const navigate = useNavigate();
 
   // ✅ Fetch categories
   useEffect(() => {
@@ -61,6 +69,7 @@ const CategoryHighlights: React.FC = () => {
     ],
   };
 
+  // ✅ Fetch products by category
   const fetchProductsByCategory = useCallback(async (category: Category) => {
     setSelectedCategory(category);
     setShowModal(true);
@@ -80,6 +89,56 @@ const CategoryHighlights: React.FC = () => {
     }
   }, []);
 
+  // ✅ Handle Add to Cart Click
+  const handleAddToCart = (product: Product) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in to add to your cart 🛒");
+      setTimeout(() => navigate("/profile"), 1500);
+      return;
+    }
+    setSelectedProduct(product);
+    setQuantity(1);
+    setShowCartModal(true);
+  };
+
+  // ✅ Handle Cart Submission
+  const submitToCart = async () => {
+    if (!selectedProduct) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please log in first 🛒");
+      setTimeout(() => navigate("/profile"), 1500);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId: selectedProduct._id,
+          quantity,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Product added to cart successfully 🛍️");
+        setShowCartModal(false);
+      } else {
+        toast.error(data.message || "Failed to add to cart");
+      }
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      toast.error("Something went wrong!");
+    }
+  };
+
   if (loading) {
     return (
       <section className="py-16 bg-white flex justify-center items-center">
@@ -90,6 +149,7 @@ const CategoryHighlights: React.FC = () => {
 
   return (
     <section className="py-16 bg-white relative">
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <Slider {...settings}>
           {categories.map((cat, index) => (
@@ -124,7 +184,7 @@ const CategoryHighlights: React.FC = () => {
         </Slider>
       </div>
 
-      {/* ✨ Modal Section */}
+      {/* ✨ Product Modal */}
       <AnimatePresence>
         {showModal && (
           <motion.div
@@ -141,7 +201,6 @@ const CategoryHighlights: React.FC = () => {
               exit={{ opacity: 0, y: 60 }}
               transition={{ duration: 0.35, ease: "easeOut" }}
             >
-              {/* Close Button */}
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-3 right-3 bg-gray-100 hover:bg-gray-200 rounded-full p-1.5 text-gray-700"
@@ -176,28 +235,23 @@ const CategoryHighlights: React.FC = () => {
                       <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                         {p.description}
                       </p>
+                      <p className="text-md font-semibold text-[#d0938b] mt-2">
+                        Rs. {p.price}
+                      </p>
                       <button
-                        onClick={() => {
-                          const phoneNumber = "923003123154";
-                          const message = `Hello! I'm interested in your product:\n\n*${p.name}*\nPlease share the price.\n\nCan you tell me more about it?`;
-                          const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-                            message
-                          )}`;
-                          window.open(whatsappUrl, "_blank");
-                        }}
+                        onClick={() => handleAddToCart(p)}
                         className="relative w-full mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg"
                       >
-                        <span className="relative z-10">Contact Us</span>
+                        <span className="relative z-10">Add to Cart</span>
                         <div className="absolute inset-0 bg-white opacity-0 hover:opacity-10 transition-opacity duration-300"></div>
                       </button>
                     </motion.div>
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500">No products found.</p>
+                <p className="text-center text-gray-500">Product Comming Soon</p>
               )}
 
-              {/* View All Button */}
               {!modalLoading && products.length > 0 && (
                 <div className="text-center mt-8 sm:mt-12">
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -214,6 +268,69 @@ const CategoryHighlights: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 🛒 Cart Quantity Modal */}
+      <AnimatePresence>
+        {showCartModal && (
+          <motion.div
+            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-2xl shadow-lg p-6 w-full max-w-sm text-center relative"
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+            >
+              {/* ✖ Close Button */}
+              <button
+                onClick={() => setShowCartModal(false)}
+                className="absolute top-3 right-3 bg-gray-100 hover:bg-gray-200 rounded-full p-1 text-gray-700"
+              >
+                ✕
+              </button>
+
+              {/* 🖼️ Product Image */}
+              {selectedProduct?.images?.[0]?.url && (
+                <img
+                  src={selectedProduct.images[0].url}
+                  alt={selectedProduct.images[0].alt || selectedProduct.name}
+                  className="w-28 h-28 object-cover rounded-xl mx-auto mb-3 shadow-sm"
+                />
+              )}
+
+              {/* 🛒 Title & Product Name */}
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                Add to Cart
+              </h3>
+              <p className="text-sm text-gray-500 mb-1">{selectedProduct?.name}</p>
+              <p className="text-md font-semibold text-[#d0938b] mb-4">
+                Rs. {selectedProduct?.price}
+              </p>
+
+              {/* 🔢 Quantity Input */}
+              <input
+                type="number"
+                min={1}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+                className="border rounded-lg w-full p-2 text-center focus:ring-2 focus:ring-[#d0a19b] outline-none mb-4"
+              />
+
+              {/* ✅ Confirm Button */}
+              <button
+                onClick={submitToCart}
+                className="w-full bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full py-2 hover:scale-105 transition-transform"
+              >
+                Confirm
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </section>
   );
 };

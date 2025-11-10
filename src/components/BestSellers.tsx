@@ -128,13 +128,16 @@ const BestSellers = () => {
     setTimeout(() => setFeedback(null), 2000);
   };
 
+
   // 🖼️ Image Modal Logic
   const openModal = (images, index = 0) => {
     setSelectedImages(images || []);
     setCurrentImageIndex(index);
     setModalOpen(true);
   };
+
   const closeModal = () => setModalOpen(false);
+  
   const nextImage = () =>
     setCurrentImageIndex((prev) => (prev + 1) % selectedImages.length);
   const prevImage = () =>
@@ -142,6 +145,7 @@ const BestSellers = () => {
       prev === 0 ? selectedImages.length - 1 : prev - 1
     );
 
+     
   return (
     <section className="py-16 bg-gray-50 relative">
       <Toaster
@@ -180,22 +184,24 @@ const BestSellers = () => {
                   >
                     <Heart className="w-4 h-4 text-gray-600" />
                   </button>
-                  <button
-                    onClick={() => openCartModal(product)}
-                    className="bg-white p-2 rounded-full shadow-md hover:bg-pink-50 transition transform hover:scale-110"
-                  >
-                    <ShoppingCart className="w-4 h-4 text-gray-600" />
-                  </button>
                 </div>
               </div>
 
-              <div className="p-5 flex flex-col justify-between h-44">
+              <div className="p-5 flex flex-col justify-between h-48">
                 <div>
                   <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
                     {product.name}
                   </h3>
 
-                  <div className="flex items-center mb-2">
+                  <p className="text-sm text-gray-500 line-clamp-2">
+                    {product.description}
+                  </p>
+
+                  <p className="text-lg font-semibold text-[#d0a19b] mt-1">
+                    Rs. {product.price}
+                  </p>
+
+                  {/* <div className="flex items-center mb-2">
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
@@ -209,25 +215,19 @@ const BestSellers = () => {
                     <span className="text-xs text-gray-500 ml-2">
                       ({(product.ratings?.average || 0).toFixed(1)})
                     </span>
-                  </div>
+                  </div> */}
 
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    {product.description}
-                  </p>
+                  
                 </div>
 
+                {/* 🛒 Replaced "Contact Us" with Add to Cart Button */}
                 <button
-                  onClick={() => {
-                    const phoneNumber = "923003123154";
-                    const message = `Hello! I'm interested in your product:\n\n*${product.name}*\nPlease share the price.\n\nCan you tell me more about it?`;
-                    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-                      message
-                    )}`;
-                    window.open(whatsappUrl, "_blank");
-                  }}
+                  onClick={() => openCartModal(product)}
                   className="relative mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg"
                 >
-                  <span className="relative z-10">Contact Us</span>
+                  <span className="relative z-10">
+                    Add to Cart
+                  </span>
                   <div className="absolute inset-0 bg-white opacity-0 hover:opacity-10 transition-opacity duration-300"></div>
                 </button>
               </div>
@@ -281,6 +281,9 @@ const BestSellers = () => {
                 <h3 className="text-lg font-medium text-gray-700 text-center">
                   {selectedProduct.name}
                 </h3>
+                <p className="text-[#d0a19b] font-semibold mt-1">
+                  Rs. {selectedProduct.price}
+                </p>
               </div>
 
               <div className="mt-5">
