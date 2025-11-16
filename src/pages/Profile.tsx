@@ -15,7 +15,7 @@ interface UserProfile {
 }
 
 const Profile: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<"login" | "register" | "update" | "password">("login");
+    const [activeTab, setActiveTab] = useState<"login" | "register" | "update" | "password" | "verifyOtp">("login");
     const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -26,6 +26,8 @@ const Profile: React.FC = () => {
         phoneNumber: "",
         password: "",
         profileImage: null as File | null,
+        otpEmail: "", // used for OTP verification
+        otp: "", // user input OTP
     });
 
     // 🔹 Password change data
@@ -82,7 +84,6 @@ const Profile: React.FC = () => {
             setFormData({ ...formData, [name]: value });
         }
     };
-
     // 🔹 Handle registration
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -104,8 +105,9 @@ const Profile: React.FC = () => {
 
             const data = await res.json();
             if (res.ok) {
-                toast.success("Registration successful!");
-                setActiveTab("login");
+                toast.success("Registration successful! Please verify your email.");
+                setActiveTab("verifyOtp"); // new tab
+                setFormData((prev) => ({ ...prev, otpEmail: formData.email })); // save email for OTP
             } else {
                 toast.error(data.message || "Registration failed!");
             }
@@ -205,6 +207,52 @@ const Profile: React.FC = () => {
         }
     };
 
+    // 🔹 Verify OTP
+    const handleVerifyOtp = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch(`${API_URL}/auth/verify-otp`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: formData.otpEmail,
+                    otp: formData.otp,
+                }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                toast.success("Email verified successfully! You can now login.");
+                setActiveTab("login");
+            } else {
+                toast.error(data.message || "OTP verification failed!");
+            }
+        } catch {
+            toast.error("Something went wrong while verifying OTP.");
+        }
+    };
+
+    // 🔹 Resend OTP
+    const handleResendOtp = async () => {
+        try {
+            const res = await fetch(`${API_URL}/auth/resend-otp`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: formData.otpEmail }),
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                toast.success("OTP resent successfully!");
+            } else {
+                toast.error(data.message || "Failed to resend OTP.");
+            }
+        } catch {
+            toast.error("Something went wrong while resending OTP.");
+        }
+    };
+
     // 🔹 Handle logout
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -219,6 +267,51 @@ const Profile: React.FC = () => {
             </div>
         );
     }
+
+
+    if (!user && activeTab === "verifyOtp") {
+        return (
+            <div className="bg-white flex items-center justify-center px-4 py-12">
+                <Toaster position="top-center" />
+                <div className="w-full max-w-md p-6 border rounded-2xl shadow-md bg-[#fdfaf9]">
+                    <form onSubmit={handleVerifyOtp} className="space-y-4">
+                        <h3 className="text-xl font-semibold text-center text-[#d0a19b]">
+                            Verify Your Email
+                        </h3>
+
+                        <p className="text-center text-gray-600">
+                            Enter the OTP sent to <b>{formData.otpEmail}</b>
+                        </p>
+
+                        <input
+                            type="text"
+                            name="otp"
+                            value={formData.otp}
+                            onChange={handleChange}
+                            placeholder="Enter OTP"
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#d0a19b]"
+                        />
+
+                        <button
+                            type="submit"
+                            className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold hover:border-[#d0a19b] border-2 border-transparent"
+                        >
+                            Verify OTP
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleResendOtp}
+                            className="w-full bg-white py-2 rounded-lg border-2 border-[#d0a19b] font-semibold hover:bg-[#f6dfd7]"
+                        >
+                            Resend OTP
+                        </button>
+                    </form>
+                </div>
+            </div>
+        );
+    }
+
 
     // 🔹 Logged-in view
     if (user) {
@@ -360,6 +453,7 @@ const Profile: React.FC = () => {
                             </button>
                         </form>
                     )}
+
                 </div>
             </div>
         );
