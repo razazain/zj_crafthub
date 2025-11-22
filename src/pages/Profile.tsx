@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { API_URL } from "../config";
 
 interface UserProfile {
@@ -15,8 +16,9 @@ interface UserProfile {
 }
 
 const Profile: React.FC = () => {
-    const [activeTab, setActiveTab] = useState<"login" | "register" | "update" | "password" | "verifyOtp">("login");
-    const [user, setUser] = useState<UserProfile | null>(null);
+    const [activeTab, setActiveTab] = useState<
+        "login" | "register" | "update" | "password" | "verifyOtp" | "forgot" | "resetPassword"
+    >("login"); const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
     // 🔹 Shared Form Data
@@ -35,6 +37,15 @@ const Profile: React.FC = () => {
         currentPassword: "",
         newPassword: "",
     });
+
+    const [forgotData, setForgotData] = useState({
+        email: "",
+        otp: "",
+        newPassword: "",
+    });
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
 
     // 🔹 Fetch profile
     useEffect(() => {
@@ -258,6 +269,56 @@ const Profile: React.FC = () => {
         localStorage.removeItem("token");
         setUser(null);
         toast.success("Logged out successfully!");
+    };
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch(`${API_URL}/auth/forgot-password`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: forgotData.email }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.success("OTP sent to your email");
+                setActiveTab("resetPassword");
+            } else {
+                toast.error(data.message || "Failed to send OTP");
+            }
+        } catch {
+            toast.error("Something went wrong");
+        }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch(`${API_URL}/auth/reset-password`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email: forgotData.email,
+                    otp: forgotData.otp,
+                    newPassword: forgotData.newPassword,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.success("Password reset successfully");
+                setActiveTab("login");
+            } else {
+                toast.error(data.message || "Reset failed");
+            }
+        } catch {
+            toast.error("Something went wrong");
+        }
     };
 
     if (loading) {
@@ -499,20 +560,35 @@ const Profile: React.FC = () => {
                             onChange={handleChange}
                             className="w-full px-4 py-2 border rounded-lg"
                         />
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border rounded-lg"
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border rounded-lg pr-10"
+                            />
+
+                            <span
+                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </span>
+                        </div>
                         <button
                             type="submit"
                             className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold"
                         >
                             Login
                         </button>
+                        <p
+                            className="text-sm text-center text-[#d0a19b] cursor-pointer hover:underline"
+                            onClick={() => setActiveTab("forgot")}
+                        >
+                            Forgot Password?
+                        </p>
                     </form>
                 )}
 
@@ -542,14 +618,23 @@ const Profile: React.FC = () => {
                             onChange={handleChange}
                             className="w-full px-4 py-2 border rounded-lg"
                         />
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border rounded-lg"
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border rounded-lg pr-10"
+                            />
+
+                            <span
+                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+                                onClick={() => setShowPassword(!showPassword)}
+                            >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </span>
+                        </div>
                         <input
                             type="file"
                             name="profileImage"
@@ -576,6 +661,78 @@ const Profile: React.FC = () => {
                             className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold"
                         >
                             Register
+                        </button>
+                    </form>
+                )}
+
+                {activeTab === "forgot" && (
+                    <form onSubmit={handleForgotPassword} className="space-y-4">
+                        <h3 className="text-xl font-semibold text-center text-[#d0a19b]">
+                            Forgot Password
+                        </h3>
+
+                        <input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={forgotData.email}
+                            onChange={(e) =>
+                                setForgotData({ ...forgotData, email: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border rounded-lg"
+                            required
+                        />
+
+                        <button
+                            type="submit"
+                            className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold"
+                        >
+                            Send OTP
+                        </button>
+                    </form>
+                )}
+
+                {activeTab === "resetPassword" && (
+                    <form onSubmit={handleResetPassword} className="space-y-4">
+                        <h3 className="text-xl font-semibold text-center text-[#d0a19b]">
+                            Reset Password
+                        </h3>
+
+                        <input
+                            type="text"
+                            placeholder="Enter OTP"
+                            value={forgotData.otp}
+                            onChange={(e) =>
+                                setForgotData({ ...forgotData, otp: e.target.value })
+                            }
+                            className="w-full px-4 py-2 border rounded-lg"
+                            required
+                        />
+
+                        <div className="relative">
+                            <input
+                                type={showNewPassword ? "text" : "password"}
+                                placeholder="New Password"
+                                value={forgotData.newPassword}
+                                onChange={(e) =>
+                                    setForgotData({ ...forgotData, newPassword: e.target.value })
+                                }
+                                className="w-full px-4 py-2 border rounded-lg pr-10"
+                                required
+                            />
+
+                            <span
+                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                            >
+                                {showNewPassword ? <FaEyeSlash /> : <FaEye />}
+                            </span>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold"
+                        >
+                            Reset Password
                         </button>
                     </form>
                 )}
