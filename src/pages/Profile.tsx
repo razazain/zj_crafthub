@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { API_URL } from "../config";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "../firebaseConfig";
+import { FcGoogle } from "react-icons/fc";
 
 interface UserProfile {
     _id: string;
@@ -13,6 +16,7 @@ interface UserProfile {
         alt: string;
     };
     createdAt: string;
+    authProvider?: string;
 }
 
 const Profile: React.FC = () => {
@@ -46,6 +50,7 @@ const Profile: React.FC = () => {
 
     const [showPassword, setShowPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
 
     // 🔹 Fetch profile
     useEffect(() => {
@@ -85,6 +90,60 @@ const Profile: React.FC = () => {
 
         fetchProfile();
     }, []);
+
+    // 🔹 Handle Google Sign-In
+    const handleGoogleSignIn = async () => {
+        try {
+            setGoogleLoading(true);
+
+            // Sign in with Google via Firebase
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+
+            // Get Firebase ID token
+            const idToken = await user.getIdToken();
+
+            // Send token to your backend
+            const res = await fetch(`${API_URL}/auth/google`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ idToken }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                toast.success("Google login successful!");
+                localStorage.setItem("token", data.token);
+                window.location.reload(); // Reload to update user state
+            } else {
+                // Handle specific errors
+                if (data.useEmailLogin) {
+                    toast.error(data.message);
+                    // Optionally switch to login tab with email pre-filled
+                    setActiveTab("login");
+                    setFormData(prev => ({ ...prev, email: user.email || "" }));
+                } else {
+                    toast.error(data.message || "Google login failed!");
+                }
+            }
+        } catch (error: any) {
+            console.error("Google sign-in error:", error);
+
+            // Handle specific Firebase errors
+            if (error.code === 'auth/popup-closed-by-user') {
+                toast.error("Sign-in popup was closed. Please try again.");
+            } else if (error.code === 'auth/cancelled-popup-request') {
+                toast.error("Sign-in was cancelled. Please try again.");
+            } else {
+                toast.error("Google sign-in failed. Please try again.");
+            }
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
 
     // 🔹 Handle input change
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -390,6 +449,11 @@ const Profile: React.FC = () => {
                     </h2>
                     <p className="text-gray-700 text-center mb-1">{user.email}</p>
                     <p className="text-gray-700 text-center mb-1">{user.phoneNumber}</p>
+                    {user.authProvider && user.authProvider !== 'local' && (
+                        <p className="text-sm text-center text-gray-500 mb-4">
+                            Signed in with {user.authProvider.charAt(0).toUpperCase() + user.authProvider.slice(1)}
+                        </p>
+                    )}
 
                     <div className="flex justify-center gap-3 mt-6">
                         <button
@@ -551,118 +615,167 @@ const Profile: React.FC = () => {
                 </div>
 
                 {activeTab === "login" && (
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border rounded-lg"
-                        />
-                        <div className="relative">
+                    <>
+                        <form onSubmit={handleLogin} className="space-y-4">
                             <input
-                                type={showPassword ? "text" : "password"}
-                                name="password"
-                                placeholder="Password"
-                                value={formData.password}
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value={formData.email}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border rounded-lg pr-10"
+                                className="w-full px-4 py-2 border rounded-lg"
                             />
-
-                            <span
-                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
-                                onClick={() => setShowPassword(!showPassword)}
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border rounded-lg pr-10"
+                                />
+                                <span
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </span>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold hover:border-[#d0a19b] border-2 border-transparent transition-colors"
                             >
-                                {showPassword ? <FaEyeSlash /> : <FaEye />}
-                            </span>
+                                Login
+                            </button>
+                        </form>
+
+                        {/* Add Google Sign-In Button */}
+                        <div className="relative flex items-center justify-center my-6">
+                            <div className="flex-grow border-t border-gray-300"></div>
+                            <span className="mx-4 text-gray-500 text-sm">or continue with</span>
+                            <div className="flex-grow border-t border-gray-300"></div>
                         </div>
+
                         <button
-                            type="submit"
-                            className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold"
+                            onClick={handleGoogleSignIn}
+                            disabled={googleLoading}
+                            className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Login
+                            {googleLoading ? (
+                                <span className="text-gray-600">Signing in...</span>
+                            ) : (
+                                <>
+                                    <FcGoogle className="text-xl" />
+                                    <span className="font-medium text-gray-700">Continue with Google</span>
+                                </>
+                            )}
                         </button>
+
                         <p
-                            className="text-sm text-center text-[#d0a19b] cursor-pointer hover:underline"
+                            className="text-sm text-center text-[#d0a19b] cursor-pointer hover:underline mt-4"
                             onClick={() => setActiveTab("forgot")}
                         >
                             Forgot Password?
                         </p>
-                    </form>
+                    </>
                 )}
 
                 {activeTab === "register" && (
-                    <form onSubmit={handleRegister} className="space-y-4">
-                        <input
-                            type="text"
-                            name="name"
-                            placeholder="Full Name"
-                            value={formData.name}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border rounded-lg"
-                        />
-                        <input
-                            type="text"
-                            name="phoneNumber"
-                            placeholder="Phone Number"
-                            value={formData.phoneNumber}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border rounded-lg"
-                        />
-                        <input
-                            type="email"
-                            name="email"
-                            placeholder="Email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 border rounded-lg"
-                        />
-                        <div className="relative">
+                    <>
+                        <form onSubmit={handleRegister} className="space-y-4">
                             <input
-                                type={showPassword ? "text" : "password"}
-                                name="password"
-                                placeholder="Password"
-                                value={formData.password}
+                                type="text"
+                                name="name"
+                                placeholder="Full Name"
+                                value={formData.name}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2 border rounded-lg pr-10"
+                                className="w-full px-4 py-2 border rounded-lg"
                             />
+                            <input
+                                type="text"
+                                name="phoneNumber"
+                                placeholder="Phone Number"
+                                value={formData.phoneNumber}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border rounded-lg"
+                            />
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border rounded-lg"
+                            />
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    placeholder="Password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    className="w-full px-4 py-2 border rounded-lg pr-10"
+                                />
 
-                            <span
-                                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
-                                onClick={() => setShowPassword(!showPassword)}
+                                <span
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </span>
+                            </div>
+                            <input
+                                type="file"
+                                name="profileImage"
+                                accept="image/*"
+                                onChange={handleChange}
+                                id="profileImage"
+                                className="sr-only"
+                            />
+                            <label
+                                htmlFor="profileImage"
+                                className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 rounded-lg bg-[#f6dfd7] text-gray-700 cursor-pointer hover:bg-[#e8c4bb] transition-all"
                             >
-                                {showPassword ? <FaEyeSlash /> : <FaEye />}
-                            </span>
+                                <span className="truncate">
+                                    {formData.profileImage
+                                        ? (formData.profileImage as File).name
+                                        : "Choose Profile Image"}
+                                </span>
+                                <span className="px-3 py-1 text-sm font-medium bg-white border border-gray-300 rounded-lg">
+                                    Browse
+                                </span>
+                            </label>
+                            <button
+                                type="submit"
+                                className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold"
+                            >
+                                Register
+                            </button>
+                        </form>
+
+                        {/* Add Google Sign-In Button for Registration */}
+                        <div className="relative flex items-center justify-center my-6">
+                            <div className="flex-grow border-t border-gray-300"></div>
+                            <span className="mx-4 text-gray-500 text-sm">or sign up with</span>
+                            <div className="flex-grow border-t border-gray-300"></div>
                         </div>
-                        <input
-                            type="file"
-                            name="profileImage"
-                            accept="image/*"
-                            onChange={handleChange}
-                            id="profileImage"
-                            className="sr-only"
-                        />
-                        <label
-                            htmlFor="profileImage"
-                            className="flex items-center justify-between w-full px-4 py-2 border border-gray-300 rounded-lg bg-[#f6dfd7] text-gray-700 cursor-pointer hover:bg-[#e8c4bb] transition-all"
-                        >
-                            <span className="truncate">
-                                {formData.profileImage
-                                    ? (formData.profileImage as File).name
-                                    : "Choose Profile Image"}
-                            </span>
-                            <span className="px-3 py-1 text-sm font-medium bg-white border border-gray-300 rounded-lg">
-                                Browse
-                            </span>
-                        </label>
+
                         <button
-                            type="submit"
-                            className="w-full bg-[#f6dfd7] py-2 rounded-lg font-semibold"
+                            onClick={handleGoogleSignIn}
+                            disabled={googleLoading}
+                            className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Register
+                            {googleLoading ? (
+                                <span className="text-gray-600">Signing up...</span>
+                            ) : (
+                                <>
+                                    <FcGoogle className="text-xl" />
+                                    <span className="font-medium text-gray-700">Sign up with Google</span>
+                                </>
+                            )}
                         </button>
-                    </form>
+
+                    </>
                 )}
 
                 {activeTab === "forgot" && (
