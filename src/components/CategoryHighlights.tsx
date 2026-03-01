@@ -20,6 +20,14 @@ interface Product {
   images: { url: string; alt: string }[];
 }
 
+// Add pagination interface
+interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 const CategoryHighlights: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +35,15 @@ const CategoryHighlights: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  
+  // Pagination states
+  const [pagination, setPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 6, // Show 6 products per page (2 rows of 3 in grid)
+    totalPages: 0
+  });
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Cart Quantity Modal
   const [showCartModal, setShowCartModal] = useState(false);
@@ -39,7 +56,7 @@ const CategoryHighlights: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${API_URL}/categories`);
+        const res = await fetch(`${API_URL}/categories?status=active`);
         const data = await res.json();
         if (data.success && data.categories) {
           setCategories(data.categories);
@@ -69,25 +86,57 @@ const CategoryHighlights: React.FC = () => {
     ],
   };
 
-  // ✅ Fetch products by category
-  const fetchProductsByCategory = useCallback(async (category: Category) => {
+  // ✅ Fetch products by category with pagination
+  const fetchProductsByCategory = useCallback(async (category: Category, page: number = 1) => {
     setSelectedCategory(category);
     setShowModal(true);
     setModalLoading(true);
     setProducts([]);
 
     try {
-      const res = await fetch(`${API_URL}/products/category/${category._id}`);
+      const res = await fetch(
+        `${API_URL}/products/category/${category._id}?page=${page}&limit=${pagination.limit}&status=active`
+      );
       const data = await res.json();
       if (data.success && data.products) {
-        setProducts(data.products.slice(0, 3));
+        setProducts(data.products);
+        setPagination(data.pagination);
+        setCurrentPage(data.pagination.page);
       }
     } catch (error) {
       console.error("Error fetching products:", error);
     } finally {
       setModalLoading(false);
     }
-  }, []);
+  }, [pagination.limit]);
+
+  // Handle page change
+  const handlePageChange = useCallback(async (newPage: number) => {
+    if (!selectedCategory) return;
+    
+    setModalLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/products/category/${selectedCategory._id}?page=${newPage}&limit=${pagination.limit}&status=active`
+      );
+      const data = await res.json();
+      if (data.success && data.products) {
+        setProducts(data.products);
+        setPagination(data.pagination);
+        setCurrentPage(data.pagination.page);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setModalLoading(false);
+    }
+  }, [selectedCategory, pagination.limit]);
+
+  // Reset pagination when opening new category
+  const handleCategoryClick = (category: Category) => {
+    setCurrentPage(1);
+    fetchProductsByCategory(category, 1);
+  };
 
   // ✅ Handle Add to Cart Click
   const handleAddToCart = (product: Product) => {
@@ -159,7 +208,7 @@ const CategoryHighlights: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.1, ease: "easeOut" }}
-              onClick={() => fetchProductsByCategory(cat)}
+              onClick={() => handleCategoryClick(cat)}
             >
               <div className="flex flex-col rounded-2xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 bg-white">
                 <div className="aspect-[4/3] sm:aspect-[16/10] overflow-hidden">
@@ -217,39 +266,88 @@ const CategoryHighlights: React.FC = () => {
                   Loading products...
                 </div>
               ) : products.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                  {products.map((p) => (
-                    <motion.div
-                      key={p._id}
-                      className="border rounded-xl p-3 sm:p-4 hover:shadow-lg transition-all duration-300 bg-white"
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <img
-                        src={p.images?.[0]?.url}
-                        alt={p.images?.[0]?.alt || p.name}
-                        className="w-full h-40 sm:h-48 object-cover rounded-lg"
-                      />
-                      <h4 className="text-base sm:text-lg font-semibold text-gray-800 mt-2 truncate">
-                        {p.name}
-                      </h4>
-                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                        {p.description}
-                      </p>
-                      <p className="text-md font-semibold text-[#d0938b] mt-2">
-                        Rs. {p.price}
-                      </p>
-                      <button
-                        onClick={() => handleAddToCart(p)}
-                        className="relative w-full mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                    {products.map((p) => (
+                      <motion.div
+                        key={p._id}
+                        className="border rounded-xl p-3 sm:p-4 hover:shadow-lg transition-all duration-300 bg-white"
+                        whileHover={{ scale: 1.02 }}
                       >
-                        <span className="relative z-10">Add to Cart</span>
-                        <div className="absolute inset-0 bg-white opacity-0 hover:opacity-10 transition-opacity duration-300"></div>
+                        <img
+                          src={p.images?.[0]?.url}
+                          alt={p.images?.[0]?.alt || p.name}
+                          className="w-full h-40 sm:h-48 object-cover rounded-lg"
+                        />
+                        <h4 className="text-base sm:text-lg font-semibold text-gray-800 mt-2 truncate">
+                          {p.name}
+                        </h4>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {p.description}
+                        </p>
+                        <p className="text-md font-semibold text-[#d0938b] mt-2">
+                          Rs. {p.price}
+                        </p>
+                        <button
+                          onClick={() => handleAddToCart(p)}
+                          className="relative w-full mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+                        >
+                          <span className="relative z-10">Add to Cart</span>
+                          <div className="absolute inset-0 bg-white opacity-0 hover:opacity-10 transition-opacity duration-300"></div>
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {pagination.totalPages > 1 && (
+                    <div className="flex justify-center items-center space-x-2 mt-6">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === 1
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-[#d0a19b] text-white hover:bg-[#b58983]"
+                        } transition-colors duration-200`}
+                      >
+                        Previous
                       </button>
-                    </motion.div>
-                  ))}
-                </div>
+                      
+                      {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-1 rounded-md ${
+                            currentPage === page
+                              ? "bg-[#d0938b] text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          } transition-colors duration-200`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                      
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === pagination.totalPages}
+                        className={`px-3 py-1 rounded-md ${
+                          currentPage === pagination.totalPages
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-[#d0a19b] text-white hover:bg-[#b58983]"
+                        } transition-colors duration-200`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  )}
+
+                  <p className="text-center text-sm text-gray-500 mt-2">
+                    Showing {products.length} of {pagination.total} products
+                  </p>
+                </>
               ) : (
-                <p className="text-center text-gray-500">Product Comming Soon</p>
+                <p className="text-center text-gray-500">Product Coming Soon</p>
               )}
 
               {!modalLoading && products.length > 0 && (

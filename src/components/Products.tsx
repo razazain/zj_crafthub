@@ -4,12 +4,45 @@ import toast, { Toaster } from "react-hot-toast";
 import { API_URL } from "../config";
 import { useNavigate } from "react-router-dom";
 
+// Add pagination interfaces
+interface Pagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+interface CategoryPagination {
+  total: number;
+  page: number;
+  totalPages: number;
+  limit: number;
+}
+
 const Products = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(false);
+
+  // Category pagination states
+  const [categoryPagination, setCategoryPagination] = useState<CategoryPagination>({
+    total: 0,
+    page: 1,
+    totalPages: 1,
+    limit: 10
+  });
+  const [categoryCurrentPage, setCategoryCurrentPage] = useState(1);
+
+  // Products pagination states
+  const [productPagination, setProductPagination] = useState<Pagination>({
+    total: 0,
+    page: 1,
+    limit: 8, // Show 8 products per page (2 rows of 4 on desktop)
+    totalPages: 0
+  });
+  const [productCurrentPage, setProductCurrentPage] = useState(1);
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,13 +55,20 @@ const Products = () => {
 
   const navigate = useNavigate();
 
-  // 👉 Fetch Categories
-  const fetchCategories = async () => {
+  // 👉 Fetch Categories with pagination
+  const fetchCategories = async (page: number = 1) => {
     try {
-      const res = await fetch(`${API_URL}/categories`);
+      const res = await fetch(`${API_URL}/categories?status=active&page=${page}&limit=${categoryPagination.limit}`);
       const data = await res.json();
       if (data.success) {
         setCategories([{ _id: "All", name: "All" }, ...data.categories]);
+        setCategoryPagination({
+          total: data.total,
+          page: data.page,
+          totalPages: data.totalPages,
+          limit: data.limit
+        });
+        setCategoryCurrentPage(data.page);
       } else {
         toast.error("Failed to load categories.");
       }
@@ -37,18 +77,18 @@ const Products = () => {
     }
   };
 
-  // 👉 Fetch Products
-  const fetchProducts = async () => {
+  // 👉 Fetch Products with pagination
+  const fetchProducts = async (page: number = 1) => {
     try {
       setLoading(true);
       let endpoint = "";
 
       if (activeTab === "Best Sellers") {
-        endpoint = `${API_URL}/products/filter/bestseller`;
+        endpoint = `${API_URL}/products/filter/bestseller?page=${page}&limit=${productPagination.limit}&status=active`;
       } else if (selectedCategory !== "All") {
-        endpoint = `${API_URL}/products/category/${selectedCategory}`;
+        endpoint = `${API_URL}/products/category/${selectedCategory}?page=${page}&limit=${productPagination.limit}&status=active`;
       } else {
-        endpoint = `${API_URL}/products`;
+        endpoint = `${API_URL}/products?page=${page}&limit=${productPagination.limit}&status=active`;
       }
 
       const res = await fetch(endpoint);
@@ -56,6 +96,8 @@ const Products = () => {
 
       if (data.success) {
         setProducts(data.products || []);
+        setProductPagination(data.pagination);
+        setProductCurrentPage(data.pagination.page);
       } else {
         setProducts([]);
         toast.error("Product Comming Soon");
@@ -65,6 +107,16 @@ const Products = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle category page change
+  const handleCategoryPageChange = async (newPage: number) => {
+    await fetchCategories(newPage);
+  };
+
+  // Handle product page change
+  const handleProductPageChange = async (newPage: number) => {
+    await fetchProducts(newPage);
   };
 
   const openImageModal = (images: string[]) => {
@@ -88,7 +140,18 @@ const Products = () => {
     );
   };
 
-  // Optional: Keyboard support
+  // Reset product page when changing tabs or categories
+  useEffect(() => {
+    setProductCurrentPage(1);
+    fetchProducts(1);
+  }, [activeTab, selectedCategory]);
+
+  // Reset category page when component mounts
+  useEffect(() => {
+    fetchCategories(1);
+  }, []);
+
+  // Optional: Keyboard support for image modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!imageModalOpen) return;
@@ -99,14 +162,6 @@ const Products = () => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [imageModalOpen]);
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [activeTab, selectedCategory]);
 
   const handleAddToWishlist = async (product: any) => {
     const token = localStorage.getItem("token");
@@ -212,14 +267,14 @@ const Products = () => {
         <div className="flex flex-col md:flex-row gap-6 md:gap-8">
           {/* ===== Sidebar ===== */}
           {activeTab !== "Best Sellers" && (
-            <aside className="md:w-64 bg-white p-4 rounded-lg shadow-sm h-fit overflow-x-auto md:overflow-visible">
+            <aside className="md:w-64 bg-white p-4 rounded-lg shadow-sm h-fit">
               <h3 className="text-lg font-semibold text-black mb-4">Categories</h3>
-              <ul className="flex md:flex-col space-x-3 md:space-x-0 md:space-y-2">
+              <ul className="space-y-2">
                 {categories.map((cat) => (
-                  <li key={cat._id} className="flex-shrink-0">
+                  <li key={cat._id}>
                     <button
                       onClick={() => setSelectedCategory(cat._id)}
-                      className={`whitespace-nowrap w-full text-left px-3 py-2 rounded-md transition-colors duration-200 ${selectedCategory === cat._id
+                      className={`w-full text-left px-3 py-2 rounded-md transition-colors duration-200 ${selectedCategory === cat._id
                         ? "bg-[#d0a19b] text-white font-medium"
                         : "text-black hover:bg-[#f5e6e2]"
                         }`}
@@ -229,6 +284,39 @@ const Products = () => {
                   </li>
                 ))}
               </ul>
+
+              {/* Category Pagination */}
+              {categoryPagination.totalPages > 1 && (
+                <div className="mt-4 flex justify-center items-center space-x-1">
+                  <button
+                    onClick={() => handleCategoryPageChange(categoryCurrentPage - 1)}
+                    disabled={categoryCurrentPage === 1}
+                    className={`px-2 py-1 text-sm rounded-md ${
+                      categoryCurrentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-[#d0a19b] text-white hover:bg-[#b58983]"
+                    } transition-colors duration-200`}
+                  >
+                    ←
+                  </button>
+                  
+                  <span className="text-sm text-gray-600 px-2">
+                    {categoryCurrentPage} / {categoryPagination.totalPages}
+                  </span>
+                  
+                  <button
+                    onClick={() => handleCategoryPageChange(categoryCurrentPage + 1)}
+                    disabled={categoryCurrentPage === categoryPagination.totalPages}
+                    className={`px-2 py-1 text-sm rounded-md ${
+                      categoryCurrentPage === categoryPagination.totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-[#d0a19b] text-white hover:bg-[#b58983]"
+                    } transition-colors duration-200`}
+                  >
+                    →
+                  </button>
+                </div>
+              )}
             </aside>
           )}
 
@@ -237,64 +325,135 @@ const Products = () => {
             {loading ? (
               <p className="text-gray-600 text-center">Loading products...</p>
             ) : products.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-                {products.map((product: any, index: number) => (
-                  <div
-                    key={index}
-                    className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group flex flex-col"
-                  >
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+                  {products.map((product: any, index: number) => (
                     <div
-                      className="relative overflow-hidden cursor-pointer"
-                      onClick={() => openImageModal(product.images.map((img: any) => img.url))}
+                      key={index}
+                      className="bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group flex flex-col"
                     >
-                      <img
-                        src={product.images && product.images[0]?.url}
-                        alt={product.name}
-                        className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      <div
+                        className="relative overflow-hidden cursor-pointer"
+                        onClick={() => openImageModal(product.images.map((img: any) => img.url))}
+                      >
+                        <img
+                          src={product.images && product.images[0]?.url}
+                          alt={product.name}
+                          className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
 
-                      {/* Wishlist Button */}
-                      <div className="absolute top-2 right-2">
+                        {/* Wishlist Button */}
+                        <div className="absolute top-2 right-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation(); // prevent triggering image modal
+                              handleAddToWishlist(product);
+                            }}
+                            className="bg-white p-2 rounded-full shadow-md hover:bg-pink-50 transition transform hover:scale-110"
+                          >
+                            <Heart className="w-4 h-4 text-gray-600" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="p-5 flex flex-col justify-between flex-1">
+                        <div>
+                          <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
+                            {product.name}
+                          </h3>
+
+                          {/* Price */}
+                          <p className="text-lg font-bold text-[#d0a19b] mb-2">
+                            Rs. {product.price}
+                          </p>
+
+                          {/* Description */}
+                          <p className="text-sm text-gray-500 line-clamp-2">
+                            {product.description}
+                          </p>
+                        </div>
+
+                        {/* Add to Cart Button */}
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation(); // prevent triggering image modal
-                            handleAddToWishlist(product);
-                          }}
-                          className="bg-white p-2 rounded-full shadow-md hover:bg-pink-50 transition transform hover:scale-110"
+                          onClick={() => openCartModal(product)}
+                          className="mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full transition-transform duration-300 hover:scale-105 hover:shadow-lg"
                         >
-                          <Heart className="w-4 h-4 text-gray-600" />
+                          Add to Cart
                         </button>
                       </div>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="p-5 flex flex-col justify-between flex-1">
-                      <div>
-                        <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2">
-                          {product.name}
-                        </h3>
-
-                        {/* Price */}
-                        <p className="text-lg font-bold text-[#d0a19b] mb-2">
-                          Rs. {product.price}
-                        </p>
-
-                        {/* Description */}
-                        <p className="text-sm text-gray-500 line-clamp-2">
-                          {product.description}
-                        </p>
+                {/* Product Pagination */}
+                {productPagination.totalPages > 1 && (
+                  <div className="mt-8 flex flex-col items-center space-y-3">
+                    <div className="flex justify-center items-center space-x-2">
+                      <button
+                        onClick={() => handleProductPageChange(productCurrentPage - 1)}
+                        disabled={productCurrentPage === 1}
+                        className={`px-3 py-1 rounded-md ${
+                          productCurrentPage === 1
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-[#d0a19b] text-white hover:bg-[#b58983]"
+                        } transition-colors duration-200`}
+                      >
+                        Previous
+                      </button>
+                      
+                      {/* Page Numbers - Show limited numbers on mobile */}
+                      <div className="flex space-x-1">
+                        {Array.from({ length: Math.min(5, productPagination.totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (productPagination.totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else {
+                            // Show pages around current page
+                            const start = Math.max(1, productCurrentPage - 2);
+                            const end = Math.min(productPagination.totalPages, start + 4);
+                            pageNum = start + i;
+                          }
+                          
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => handleProductPageChange(pageNum)}
+                              className={`hidden sm:block w-8 h-8 rounded-md ${
+                                productCurrentPage === pageNum
+                                  ? "bg-[#d0938b] text-white"
+                                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                              } transition-colors duration-200`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
                       </div>
 
-                      {/* Add to Cart Button */}
+                      {/* Mobile Page Indicator */}
+                      <span className="sm:hidden text-sm text-gray-600">
+                        Page {productCurrentPage} of {productPagination.totalPages}
+                      </span>
+                      
                       <button
-                        onClick={() => openCartModal(product)}
-                        className="mt-4 py-2 bg-gradient-to-r from-[#d0a19b] to-[#e8c3bd] text-white font-medium rounded-full transition-transform duration-300 hover:scale-105 hover:shadow-lg"
+                        onClick={() => handleProductPageChange(productCurrentPage + 1)}
+                        disabled={productCurrentPage === productPagination.totalPages}
+                        className={`px-3 py-1 rounded-md ${
+                          productCurrentPage === productPagination.totalPages
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : "bg-[#d0a19b] text-white hover:bg-[#b58983]"
+                        } transition-colors duration-200`}
                       >
-                        Add to Cart
+                        Next
                       </button>
                     </div>
+                    
+                    <p className="text-sm text-gray-500">
+                      Showing {products.length} of {productPagination.total} products
+                    </p>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             ) : (
               <p className="text-gray-600 text-center">
                 Product comming soon for the selected category.
