@@ -4,6 +4,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { API_URL } from "../config";
 import { useNavigate } from "react-router-dom";
 
+
 // Add pagination interfaces
 interface Pagination {
   total: number;
@@ -18,6 +19,7 @@ interface CategoryPagination {
   totalPages: number;
   limit: number;
 }
+
 
 const Products = () => {
   const [categories, setCategories] = useState<any[]>([]);
