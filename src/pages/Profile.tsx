@@ -91,60 +91,6 @@ const Profile: React.FC = () => {
         fetchProfile();
     }, []);
 
-    // 🔹 Handle Google Sign-In
-    const handleGoogleSignIn = async () => {
-        try {
-            setGoogleLoading(true);
-
-            // Sign in with Google via Firebase
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-
-            // Get Firebase ID token
-            const idToken = await user.getIdToken();
-
-            // Send token to your backend
-            const res = await fetch(`${API_URL}/auth/google`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ idToken }),
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                toast.success("Google login successful!");
-                localStorage.setItem("token", data.token);
-                window.location.reload(); // Reload to update user state
-            } else {
-                // Handle specific errors
-                if (data.useEmailLogin) {
-                    toast.error(data.message);
-                    // Optionally switch to login tab with email pre-filled
-                    setActiveTab("login");
-                    setFormData(prev => ({ ...prev, email: user.email || "" }));
-                } else {
-                    toast.error(data.message || "Google login failed!");
-                }
-            }
-        } catch (error: any) {
-            console.error("Google sign-in error:", error);
-
-            // Handle specific Firebase errors
-            if (error.code === 'auth/popup-closed-by-user') {
-                toast.error("Sign-in popup was closed. Please try again.");
-            } else if (error.code === 'auth/cancelled-popup-request') {
-                toast.error("Sign-in was cancelled. Please try again.");
-            } else {
-                toast.error("Google sign-in failed. Please try again.");
-            }
-        } finally {
-            setGoogleLoading(false);
-        }
-    };
-
     // 🔹 Handle input change
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, files } = e.target;
@@ -649,28 +595,6 @@ const Profile: React.FC = () => {
                             </button>
                         </form>
 
-                        {/* Add Google Sign-In Button */}
-                        <div className="relative flex items-center justify-center my-6">
-                            <div className="flex-grow border-t border-gray-300"></div>
-                            <span className="mx-4 text-gray-500 text-sm">or continue with</span>
-                            <div className="flex-grow border-t border-gray-300"></div>
-                        </div>
-
-                        <button
-                            onClick={handleGoogleSignIn}
-                            disabled={googleLoading}
-                            className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {googleLoading ? (
-                                <span className="text-gray-600">Signing in...</span>
-                            ) : (
-                                <>
-                                    <FcGoogle className="text-xl" />
-                                    <span className="font-medium text-gray-700">Continue with Google</span>
-                                </>
-                            )}
-                        </button>
-
                         <p
                             className="text-sm text-center text-[#d0a19b] cursor-pointer hover:underline mt-4"
                             onClick={() => setActiveTab("forgot")}
@@ -752,28 +676,6 @@ const Profile: React.FC = () => {
                                 Register
                             </button>
                         </form>
-
-                        {/* Add Google Sign-In Button for Registration */}
-                        <div className="relative flex items-center justify-center my-6">
-                            <div className="flex-grow border-t border-gray-300"></div>
-                            <span className="mx-4 text-gray-500 text-sm">or sign up with</span>
-                            <div className="flex-grow border-t border-gray-300"></div>
-                        </div>
-
-                        <button
-                            onClick={handleGoogleSignIn}
-                            disabled={googleLoading}
-                            className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {googleLoading ? (
-                                <span className="text-gray-600">Signing up...</span>
-                            ) : (
-                                <>
-                                    <FcGoogle className="text-xl" />
-                                    <span className="font-medium text-gray-700">Sign up with Google</span>
-                                </>
-                            )}
-                        </button>
 
                     </>
                 )}
