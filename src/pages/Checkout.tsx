@@ -254,7 +254,7 @@ const Checkout: React.FC = () => {
             <div className="bg-pink-50 rounded-xl p-4 inline-block mt-3">
               <p className="text-gray-800 font-semibold text-lg">Easypaisa Number:</p>
               <p className="text-[#d0938b] font-bold text-2xl">0345-1234567</p>
-              <p className="text-gray-600 mt-1 text-sm">Account Name: ZJ Crafthub</p>
+              <p className="text-gray-600 mt-1 text-sm">Account Name: ZJ Craftshub</p>
             </div>
 
             <div className="flex justify-between text-gray-700 mt-6 max-w-sm mx-auto">

@@ -128,7 +128,16 @@ const Footer = () => {
             {" "}
             (+92) 300 3123154{" "}
           </a>
-          |
+          | 
+          <a
+            href="mailto:zjcrafthub@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-gray-700 hover:text-[#d0a19b] transition-colors duration-300"
+          >
+            {" "}
+            zjcrafthub@gmail.com{" "}
+          </a>
         </div>
       </div>
     </footer>
